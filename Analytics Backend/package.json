@@ -1,0 +1,22 @@
+{
+  "name": "oracle-analytics-embeded",
+  "version": "1.0.0",
+  "description": "this is a oracle cloud embeded project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fnproject/fdk": "^0.0.67",
+    "axios": "^1.7.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "install": "^0.13.0",
+    "node-fetch": "^2.6.1",
+    "npm": "^10.8.1",
+    "qs": "^6.12.3"
+  }
+}

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <script
+        src="https://mjoac-bmhielsvyoc1-bo.analytics.ocp.oraclecloud.com/public/dv/v1/embedding/standalone/embedding.js"
+        type="application/javascript">
+        </script>
+
+    <!-- // change embedding mode always "standalone". -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <title>
+        Mjunction OCI
+    </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .buttons {
+            text-align: right;
+        }
+
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .content {
+            display: none;
+            /* Initially hidden */
+            padding: 5px;
+            margin-top: 5px;
+            height: 96vh;
+            width: 98vw;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="buttons">
+        <button onclick="toggleDiv(1)">Loyalty_FY'24</button>
+        <button onclick="toggleDiv(2)">Target VS Actual_Loyalty</button>
+        <button onclick="toggleDiv(3)">Online_FY'24</button>
+        <button onclick="toggleDiv(4)">Target VS Actual_Online</button>
+        <button type="submit" onClick="refreshPage()">Reset</button>
+    </div>
+
+    <div class="content" id="div1"><oracle-dv project-path="/@Catalog/shared/Loyalty_Online_BS/Loyalty_FY_Sheet"
+            active-page="insight" active-tab-id="snapshot!canvas!1">
+        </oracle-dv></div>
+    <div class="content" id="div2"><oracle-dv project-path="/@Catalog/shared/Loyalty_Online_BS/Loyalty_FY_Sheet"
+            active-page="insight" active-tab-id="snapshot!canvas!2">
+        </oracle-dv></div>
+    <div class="content" id="div3"><oracle-dv project-path="/@Catalog/shared/Loyalty_Online_BS/Loyalty_FY_Sheet"
+            active-page="insight" active-tab-id="snapshot!canvas!3">
+        </oracle-dv></div>
+    <div class="content" id="div4"><oracle-dv project-path="/@Catalog/shared/Loyalty_Online_BS/Loyalty_FY_Sheet"
+            active-page="insight" active-tab-id="snapshot!canvas!4">
+        </oracle-dv></div>
+    <!-- <div class="content" id="div5">Content of Div 5</div> -->
+
+    <script>
+        function refreshPage() {
+            window.location.reload();
+        } 
+    </script>
+    <script>
+        var Url = 'http://141.148.193.21:8100/token';
+        var token_request = new XMLHttpRequest();
+        token_request.open('GET', Url, false);
+        token_request.send(null);
+        {
+            if (token_request.status = 200) {
+                var token = JSON.parse(token_request.response).token;
+                console.log(token);
+                requirejs(['jquery', 'knockout', 'obitech-application/application', 'ojs/ojcore', 'ojs/ojknockout', 'ojs/ojcomposite', 'jet-composites/oracle-dv/loader'],
+                    function ($, ko, application) {
+                        function model() {
+                            var self = this;
+                        }
+                        application.setSecurityConfig('token', {
+                            tokenAuthFunction:
+                                function () {
+                                    return token;
+                                }
+                        });
+                        ko.applyBindings(new model);
+                    }
+                );
+            } else {
+                console.log('error ${token_request.status} ${token_request.statusText}')
+            }
+        }
+    </script>
+
+
+    <script>
+        function toggleDiv(divNumber) {
+            // Get all div elements
+            const allDivs = document.querySelectorAll('.content');
+
+            // Hide all divs
+            allDivs.forEach(div => {
+                div.style.display = 'none';
+            });
+
+            // Show the selected div
+            const selectedDiv = document.getElementById(`div${divNumber}`);
+            if (selectedDiv) {
+                selectedDiv.style.display = 'block';
+            }
+        }
+    </script>
+
+</body>
+
+</html>

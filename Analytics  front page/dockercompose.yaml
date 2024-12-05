@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  mjunction-analytics-backend:
+    image: ashish2429/mjunctionbackend:1.0
+    ports:
+      - "8100:8100"
+  mjunction-analytics-frontend:
+    image: ashish2429/mjunctionfrontend:1.0
+    ports:
+      - "4400:80"
+
