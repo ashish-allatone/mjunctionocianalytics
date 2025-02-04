@@ -59,5 +59,5 @@ app.get("/token", async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running at http://141.148.193.21:${port}`);
+  console.log(`Server running at http://140.245.27.67/:${port}`);
 });
