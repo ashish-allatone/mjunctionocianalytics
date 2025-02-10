@@ -4,17 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta charset="UTF-8">
-    <script
-        src="https://mjoac-bmhielsvyoc1-bo.analytics.ocp.oraclecloud.com/public/dv/v1/embedding/standalone/embedding.js"
-        type="application/javascript">
-        </script>
+    
+    <!-- Oracle Analytics Embedding -->
+    <script src="https://mjoac-bmhielsvyoc1-bo.analytics.ocp.oraclecloud.com/public/dv/v1/embedding/standalone/embedding.js"></script>
 
-    <!-- // change embedding mode always "standalone". -->
+    <!-- RequireJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
+
     <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <title>
-        Mjunction OCI
-    </title>
+    <title>Mjunction OCI</title>
+    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,6 +21,7 @@
 
         .buttons {
             text-align: right;
+            margin-bottom: 10px;
         }
 
         button {
@@ -40,7 +40,6 @@
 
         .content {
             display: none;
-            /* Initially hidden */
             padding: 5px;
             margin-top: 5px;
             height: 96vh;
@@ -54,77 +53,117 @@
 
 <body>
     <div class="buttons">
-        <button onclick="toggleDiv(1)">Loyalty FY"24-25</button>
-        <button onclick="toggleDiv(2)">Target VS Actual_Loyalty</button>
-        <button onclick="toggleDiv(3)">Online FY"24-25</button>
-        <button onclick="toggleDiv(4)">Target VS Actual_Online</button>
-        <button type="submit" onClick="refreshPage()">Reset</button>
+        <button onclick="handleButtonClick(1)">Loyalty FY'24-25</button>
+        <button onclick="handleButtonClick(2)">Target VS Actual_Loyalty</button>
+        <button onclick="handleButtonClick(3)">Online FY'24-25</button>
+        <button onclick="handleButtonClick(4)">Target VS Actual_Online</button>
+        <button type="submit" onclick="refreshPage()">Reset</button>
     </div>
 
-    <div class="content" id="div1"><oracle-dv project-path="/@Catalog/shared/Loyalty_Online_BS/Loyalty_VS_Online_Final"
-            active-page="insight" active-tab-id="snapshot!canvas!7">
-        </oracle-dv></div>
-    <div class="content" id="div2"><oracle-dv project-path="/@Catalog/shared/Loyalty_Online_BS/Loyalty_VS_Online_Final"
-            active-page="insight" active-tab-id="snapshot!canvas!5">
-        </oracle-dv></div>
-    <div class="content" id="div3"><oracle-dv project-path="/@Catalog/shared/Loyalty_Online_BS/Loyalty_VS_Online_Final"
-            active-page="insight" active-tab-id="snapshot!canvas!8">
-        </oracle-dv></div>
-    <div class="content" id="div4"><oracle-dv project-path="/@Catalog/shared/Loyalty_Online_BS/Loyalty_VS_Online_Final"
-            active-page="insight" active-tab-id="snapshot!canvas!10">
-        </oracle-dv></div>
-    <!-- <div class="content" id="div5">Content of Div 5</div> -->
+    <div class="content" id="div1"></div>
+    <div class="content" id="div2"></div>
+    <div class="content" id="div3"></div>
+    <div class="content" id="div4"></div>
 
     <script>
-        function refreshPage() {
-            window.location.reload();
-        } 
-    </script>
-    <script>
-        var Url = 'http://140.245.7.177:8100/token';
-        var token_request = new XMLHttpRequest();
-        token_request.open('GET', Url, false);
-        token_request.send(null);
-        {
-            if (token_request.status = 200) {
-                var token = JSON.parse(token_request.response).token;
-                console.log(token);
-                requirejs(['jquery', 'knockout', 'obitech-application/application', 'ojs/ojcore', 'ojs/ojknockout', 'ojs/ojcomposite', 'jet-composites/oracle-dv/loader'],
-                    function ($, ko, application) {
-                        function model() {
-                            var self = this;
-                        }
-                        application.setSecurityConfig('token', {
-                            tokenAuthFunction:
-                                function () {
-                                    return token;
-                                }
-                        });
-                        ko.applyBindings(new model);
-                    }
-                );
-            } else {
-                console.log('error ${token_request.status} ${token_request.statusText}')
-            }
-        }
-    </script>
+        let koViewModel = null; // Global variable to store Knockout ViewModel
 
-
-    <script>
-        function toggleDiv(divNumber) {
-            // Get all div elements
-            const allDivs = document.querySelectorAll('.content');
-
-            // Hide all divs
-            allDivs.forEach(div => {
-                div.style.display = 'none';
+        function handleButtonClick(divNumber) {
+            clearOracleDV(); // Remove old Oracle DV component
+            fetchToken().then(token => {
+                toggleDiv(divNumber, token);
+            }).catch(error => {
+                console.error("Token fetch error:", error);
             });
+        }
 
-            // Show the selected div
+        function fetchToken() {
+            return new Promise((resolve, reject) => {
+        
+                // for production      var url = 'https://slanalytics.mjunction.in:3000/token';
+                var url = 'https://slanalytics.mjunction.in:3000/token';
+                var tokenRequest = new XMLHttpRequest();
+                tokenRequest.open('GET', url, true);
+                tokenRequest.onload = function () {
+                    if (tokenRequest.status === 200) {
+                        var response = JSON.parse(tokenRequest.response);
+                        console.log("New Token:", response.token);
+                        resolve(response.token);
+                    } else {
+                        reject(`Error fetching token: ${tokenRequest.status} ${tokenRequest.statusText}`);
+                    }
+                };
+                tokenRequest.onerror = function () {
+                    reject("Network error while fetching token");
+                };
+                tokenRequest.send();
+            });
+        }
+
+        function toggleDiv(divNumber, token) {
+            const allDivs = document.querySelectorAll('.content');
+            allDivs.forEach(div => div.style.display = 'none');
+
             const selectedDiv = document.getElementById(`div${divNumber}`);
             if (selectedDiv) {
                 selectedDiv.style.display = 'block';
+                selectedDiv.innerHTML = '';
+
+                const projectPath = "/@Catalog/shared/Loyalty_Online_BS/Loyalty_VS_Online_Final";
+                const tabIds = ["snapshot!canvas!7", "snapshot!canvas!12", "snapshot!canvas!8", "snapshot!canvas!10"];
+
+                const oracleDV = document.createElement("oracle-dv");
+                oracleDV.setAttribute("project-path", projectPath);
+                oracleDV.setAttribute("active-page", "insight");
+                oracleDV.setAttribute("active-tab-id", tabIds[divNumber - 1]);
+
+                selectedDiv.appendChild(oracleDV);
+
+                configureOracleDV(token);
             }
+        }
+
+        function configureOracleDV(token) {
+            require(['jquery', 'knockout', 'obitech-application/application', 'ojs/ojcore', 'ojs/ojknockout', 'ojs/ojcomposite', 'jet-composites/oracle-dv/loader'],
+                function ($, ko, application) {
+                    if (typeof ko !== 'undefined') {
+                        if (koViewModel) {
+                            ko.cleanNode(document.body); // Remove old Knockout bindings
+                        }
+
+                        function ViewModel() { }
+                        koViewModel = new ViewModel();
+
+                        application.setSecurityConfig('token', {
+                            tokenAuthFunction: function () {
+                                return token;
+                            }
+                        });
+
+                        ko.applyBindings(koViewModel, document.body);
+                    } else {
+                        console.error("Knockout is not loaded properly.");
+                    }
+                }
+            );
+        }
+
+        function clearOracleDV() {
+            const allDivs = document.querySelectorAll('.content');
+            allDivs.forEach(div => {
+                div.innerHTML = ''; // Remove previous Oracle DV component
+            });
+
+            if (koViewModel) {
+                require(['knockout'], function (ko) {
+                    ko.cleanNode(document.body); // Remove previous Knockout bindings
+                    koViewModel = null;
+                });
+            }
+        }
+
+        function refreshPage() {
+            window.location.reload();
         }
     </script>
 
